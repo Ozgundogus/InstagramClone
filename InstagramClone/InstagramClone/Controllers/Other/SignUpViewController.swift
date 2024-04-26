@@ -8,14 +8,14 @@
 import UIKit
 import SafariServices
 
-class SignUpViewController: UIViewController , UITextFieldDelegate {
+class SignUpViewController: UIViewController , UITextFieldDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate {
 
     //MARK: - Subviews
    
     private let profilePictureImageView : UIImageView = {
       
         let imageView = UIImageView()
-        imageView.tintColor = .label
+        imageView.tintColor = .lightGray
         imageView.image = UIImage(systemName: "person.circle")
         imageView.contentMode = .scaleAspectFit
         imageView.layer.masksToBounds = true
@@ -95,7 +95,7 @@ class SignUpViewController: UIViewController , UITextFieldDelegate {
         passwordField.delegate = self
         
         addButtonActions()
-        
+        addImageGesture()
         }
     
     override func viewDidLayoutSubviews() {
@@ -128,6 +128,12 @@ class SignUpViewController: UIViewController , UITextFieldDelegate {
         view.addSubview(privacyButton)
     }
     
+    private func addImageGesture(){
+        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapImage))
+        profilePictureImageView.isUserInteractionEnabled = true
+        profilePictureImageView.addGestureRecognizer(tap)
+    }
+    
     private  func addButtonActions () {
         signUpButton.addTarget(self, action: #selector(didTapSignUp), for: .touchUpInside)
         termsButton.addTarget(self, action: #selector(didTapTerms), for: .touchUpInside)
@@ -136,21 +142,63 @@ class SignUpViewController: UIViewController , UITextFieldDelegate {
     
     // MARK: - Actions
     
+    @objc private func didTapImage () {
+        let sheet = UIAlertController(
+            title: "Profile Picture",
+            message: "Set a picture to help your friends find you.",
+            preferredStyle: .actionSheet
+        )
+        sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        sheet.addAction(UIAlertAction(title: "Take Photo", style: .default, handler: { [weak self] _ in
+            
+            DispatchQueue.main.async {
+                let picker = UIImagePickerController()
+                picker.sourceType = .camera
+                picker.allowsEditing = true
+                picker.delegate = self
+                self?.present(picker,animated: true)
+            }
+            
+        }))
+        sheet.addAction(UIAlertAction(title: "Choose Photo", style: .default, handler: { [weak self] _ in
+            
+            DispatchQueue.main.async {
+                let picker = UIImagePickerController()
+                picker.sourceType = .photoLibrary
+                picker.allowsEditing = true
+                picker.delegate = self
+                self?.present(picker,animated: true)
+            }
+        }))
+        
+        present(sheet,animated: true)
+    }
+    
     @objc private func didTapSignUp(){
         usernameField.resignFirstResponder()
         emailField.resignFirstResponder()
         passwordField.resignFirstResponder()
         
-        guard let email = emailField.text,
+        guard let username = usernameField.text,
+              let email = emailField.text,
               let password = passwordField.text,
               !email.trimmingCharacters(in: .whitespaces).isEmpty,
               !password.trimmingCharacters(in: .whitespaces).isEmpty,
-               password.count >= 6 else {
+              !username.trimmingCharacters(in: .whitespaces).isEmpty,
+              password.count >= 6,
+              username.count >= 2,
+              username.trimmingCharacters(in: .alphanumerics).isEmpty else {
+            presentError()
             return
         }
-          // Sign in with authManager
+          // Sign up with authManager
     }
     
+    private func presentError () {
+        let alert = UIAlertController(title: "Woops", message: "Please make sure to fill all fields and have password longer than 6 characters", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel,handler: nil))
+        present(alert,animated: true) // show alert
+    }
     
     @objc private func didTapTerms(){
        
@@ -173,6 +221,8 @@ class SignUpViewController: UIViewController , UITextFieldDelegate {
     
     
    // Mark: - Field Delegate
+    
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == usernameField {
             emailField.becomeFirstResponder()
@@ -185,6 +235,19 @@ class SignUpViewController: UIViewController , UITextFieldDelegate {
             didTapSignUp()
         }
         return true
+    }
+    
+    //MARK: - Image Picker
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true, completion: nil)
+        guard let image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else {
+            return
+        }
+        profilePictureImageView.image = image
     }
     
 }

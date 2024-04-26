@@ -90,7 +90,6 @@ class SignInViewController: UIViewController , UITextFieldDelegate {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         headerview.frame = CGRect(x: 0, y: view.safeAreaInsets.top, width: view.width, height: (view.height-view.safeAreaInsets.top)/3 )
-        
         emailField.frame = CGRect(x: 25, y: headerview.bottom+20, width: view.width-50, height: 50)
         passwordField.frame = CGRect(x: 25, y: emailField.bottom+10, width: view.width-50, height: 50)
         signInButton.frame = CGRect(x: 35, y: passwordField.bottom+20, width: view.width-70, height: 50)
